@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a111b">
+  <title>FileForge — Portable Backup</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090f18;--panel:#121c2b;--border:#2a394c;--text:#eef5fb;--muted:#a7b8c8;--accent:#48dbc2;--accent-text:#071612;--bad:#ffc7c1}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,'Segoe UI',sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+    main{max-width:730px;margin:auto;padding:22px 16px 38px}header{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:25px}
+    a{color:var(--accent);text-decoration:none}header a{border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-weight:600}
+    .eyebrow{color:var(--accent);font-weight:700;letter-spacing:.13em;text-transform:uppercase;font-size:11px}h1{font-size:clamp(28px,6vw,38px);line-height:1.18;margin:4px 0 10px}h2{font-size:20px;margin:0 0 8px}p{margin:7px 0 14px}.muted{color:var(--muted)}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;margin:16px 0}.stat{display:flex;justify-content:space-between;gap:15px;padding:9px 0;border-bottom:1px solid var(--border)}.stat:last-child{border-bottom:0}.stat strong{text-align:right}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}button{border:1px solid var(--border);border-radius:12px;background:#203148;color:var(--text);padding:12px 16px;font:inherit;font-weight:700;cursor:pointer;min-height:46px}button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+    .checks{display:grid;gap:10px;margin:13px 0}.checks label{display:flex;align-items:center;gap:10px}.checks input{width:19px;height:19px;accent-color:var(--accent)}
+    .small{font-size:13px;color:var(--muted)}.notice{border-left:3px solid var(--accent);padding-left:12px}#status{padding:12px;border-radius:12px;background:#1b2c3a;min-height:47px;white-space:pre-wrap}#status[role="alert"]{color:var(--bad)}#importPreview[hidden]{display:none}.shelf{max-height:235px;overflow:auto;border-top:1px solid var(--border);margin-top:12px;padding-top:8px}.item{display:flex;justify-content:space-between;gap:12px;padding:5px 0;overflow-wrap:anywhere;font-size:13px}
+  </style>
+  <script src="./jszip.min.js" defer></script>
+  <script defer>
+  (()=>{'use strict';
+    const DB_NAME='fileforge-saved-results-v1',STORE='files',MAX_FILES=5,MAX_ONE=20*1048576,MAX_TOTAL=40*1048576,MAX_ZIP=48*1048576;
+    const $=id=>document.getElementById(id),str=(key)=>({
+      'ready':'Готово. Данните се четат само на телефона.',
+      'working':'Обработвам файловете локално…',
+      'nozip':'Избери ZIP, създаден от FileForge Portable Backup.',
+      'bad':'Архивът е невалиден, прекалено голям или повреден.',
+      'saved':'Резервното копие е подготвено. Провери Downloads.',
+      'restored':'Възстановяването завърши. Отвори отново FileForge.',
+      'none':'Няма избран архив.',
+      'confirm':'Да добавя данните от архива към съществуващите? Няма да изтривам настоящите файлове.',
+      'limit':'Няма достатъчно място в лимита на FileForge (5 файла / 40 MB). Първо изтегли и освободи запазени копия от Results.',
+      'fail':'Операцията не успя. Съществуващите данни не са изтрити.'})[key];
+    const fmt=n=>n>=1048576?(n/1048576).toFixed(1)+' MB':Math.round(n/1024)+' KB';
+    const state={stage:null,busy:false};
+    function status(message,error=false){const e=$('status');e.textContent=message;e.setAttribute('role',error?'alert':'status');}
+    function busy(v){state.busy=v;for(const id of ['backupBtn','chooseZip','restoreBtn'])$(id).disabled=v||id==='restoreBtn'&&!state.stage;}
+    function readLocal(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
+    function cleanRecord(x){if(!x||typeof x!=='object'||Array.isArray(x))return null;const r={};if(['pdf','zip','batch','audio','video','download'].includes(x.kind))r.kind=x.kind;for(const k of ['name','output'])if(typeof x[k]==='string')r[k]=x[k].slice(0,180);for(const k of ['time','before','after','width','height','pages','files','duration'])if(Number.isFinite(x[k])&&x[k]>=0)r[k]=x[k];return typeof r.output==='string'&&Number.isFinite(r.time)&&r.time<4102444800000?r:null;}
+    function safeList(a){return Array.isArray(a)?a.map(cleanRecord).filter(Boolean).slice(0,40):[];}
+    const favIDs=['image','pdf','zip','batch','audio','video','download'];
+    const favs=x=>Array.isArray(x)?[...new Set(x.filter(v=>favIDs.includes(v)))]:[];
+    const prefs=x=>({theme:['system','light','dark'].includes(x?.theme)?x.theme:'system',language:['bg','en'].includes(x?.language)?x.language:'bg'});
+    function dbOpen(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(Error('Database busy'));});}
+    async function getSaved(){const db=await dbOpen();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const req=tx.objectStore(STORE).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
+    async function addSaved(records){if(!records.length)return;const db=await dbOpen();try{await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);const store=tx.objectStore(STORE);for(const r of records)store.put(r);});}finally{db.close();}}
+    async function sha(blob){const bytes=await blob.arrayBuffer();const hash=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+    function validSaved(list){if(list.length>MAX_FILES)throw Error('Too many files');let total=0;for(const r of list){if(!(r.blob instanceof Blob)||!r.blob.size||r.blob.size>MAX_ONE)throw Error('File invalid');total+=r.blob.size;}if(total>MAX_TOTAL)throw Error('Total too large');}
+    async function refresh(){try{const files=await getSaved();validSaved(files);$('savedInfo').textContent=files.length+' / 5 · '+fmt(files.reduce((n,x)=>n+x.blob.size,0));$('historyInfo').textContent=String(safeList(readLocal('fileforge_history_v1',[])).length);$('favInfo').textContent=String(favs(readLocal('fileforge_favorites_v1',[])).length);return files;}catch(err){$('savedInfo').textContent='Недостъпно';throw err;}}
+    async function exportZip(){busy(true);status(str('working'));try{
+      if(!window.JSZip)throw Error('ZIP unavailable');const files=await getSaved();validSaved(files);
+      const zip=new JSZip(),metadata={format:'fileforge-portable-v1',created:new Date().toISOString(),history:safeList(readLocal('fileforge_history_v1',[])),favorites:favs(readLocal('fileforge_favorites_v1',[])),prefs:prefs(readLocal('fileforge_prefs_v1',{})),files:[]};
+      for(let i=0;i<files.length;i++){const f=files[i],path=`saved/${String(i+1).padStart(3,'0')}.bin`;zip.file(path,new Uint8Array(await f.blob.arrayBuffer()),{binary:true,compression:'STORE'});metadata.files.push({path,name:String(f.name||'file').slice(0,160),kind:String(f.kind||'download').slice(0,30),time:Number(f.time)||Date.now(),size:f.blob.size,mime:f.blob.type||'application/octet-stream',sha256:await sha(f.blob)});}
+      zip.file('fileforge-backup.json',JSON.stringify(metadata,null,2));const out=await zip.generateAsync({type:'blob',compression:'STORE',streamFiles:true});if(out.size>MAX_ZIP)throw Error('ZIP limit');
+      const url=URL.createObjectURL(out),link=document.createElement('a');link.href=url;link.download='FileForge-PortableBackup-'+new Date().toISOString().slice(0,10)+'.zip';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);status(str('saved'));
+    }catch(err){console.warn('Backup export:',err);status(str('fail')+' ('+(err.message||'error')+')',true);}finally{busy(false);}}
+    function validateMeta(m){if(!m||m.format!=='fileforge-portable-v1'||!Array.isArray(m.history)||!Array.isArray(m.files)||!Array.isArray(m.favorites)||m.history.length>500||m.files.length>MAX_FILES)throw Error('Invalid format');let total=0;const paths=new Set();for(const [i,f] of m.files.entries()){
+      if(typeof f.path!=='string'||f.path!==`saved/${String(i+1).padStart(3,'0')}.bin`||paths.has(f.path)||typeof f.name!=='string'||!f.name||f.name.length>160||!Number.isSafeInteger(f.size)||f.size<=0||f.size>MAX_ONE||!(/^[a-f0-9]{64}$/.test(f.sha256)))throw Error('Unsafe entry');total+=f.size;paths.add(f.path);
+    }if(total>MAX_TOTAL)throw Error('Too large');}
+    async function stageZip(file){state.stage=null;$('importPreview').hidden=true;busy(true);status(str('working'));try{
+      if(!file||!file.name.toLowerCase().endsWith('.zip')||file.size>MAX_ZIP||!window.JSZip)throw Error(str('nozip'));
+      const zip=await JSZip.loadAsync(new Uint8Array(await file.arrayBuffer()),{checkCRC32:false});const entry=zip.file('fileforge-backup.json');if(!entry||entry.dir)throw Error('Missing manifest');
+      if(!Number.isSafeInteger(entry._data?.uncompressedSize)||entry._data.uncompressedSize>1048576)throw Error('Manifest too large');const txt=await entry.async('string');if(txt.length>1048576)throw Error('Manifest too large');const m=JSON.parse(txt);validateMeta(m);
+      const allowed=new Set(['fileforge-backup.json',...m.files.map(x=>x.path)]);if(Object.keys(zip.files).length>MAX_FILES+3)throw Error('Too many ZIP entries');for(const [path,e] of Object.entries(zip.files)){if(e.dir&&path!=='saved/')throw Error('Unexpected directory');if(!e.dir&&!allowed.has(path))throw Error('Unexpected entry');}
+      const records=[];for(const f of m.files){const e=zip.file(f.path);if(!e||e.dir||!Number.isSafeInteger(e._data?.uncompressedSize)||e._data.uncompressedSize!==f.size||e._data.uncompressedSize>MAX_ONE)throw Error('Invalid stored file');const bytes=await e.async('uint8array');if(bytes.byteLength!==f.size)throw Error('File size mismatch');const blob=new Blob([bytes],{type:/^[\w.+\-]+\/[\w.+\-]+$/.test(f.mime)?f.mime:'application/octet-stream'});if(await sha(blob)!==f.sha256)throw Error('Checksum mismatch');records.push({name:f.name,kind:f.kind,time:Number(f.time)||Date.now(),blob});}
+      state.stage={m,records};$('importPreview').hidden=false;$('importSummary').textContent=`${records.length} файла · ${safeList(m.history).length} записи в историята · ${favs(m.favorites).length} любими инструмента`;
+      const list=$('importList');list.replaceChildren();for(const f of records){const row=document.createElement('div');row.className='item';const a=document.createElement('span');a.textContent=f.name;const b=document.createElement('span');b.textContent=fmt(f.blob.size);row.append(a,b);list.append(row);}status('Архивът е проверен. Избери какво да възстановиш.');
+    }catch(err){console.warn('Backup check:',err);status(str('bad')+' ('+(err.message||'error')+')',true);}finally{busy(false);}}
+    async function restoreZip(){if(!state.stage)return;busy(true);status(str('working'));try{
+      if(!confirm(str('confirm'))){status('Отказано. Няма промени.');return;}
+      const {m,records}=state.stage,files=$('restoreFiles').checked,history=$('restoreHistory').checked,stars=$('restoreFavourites').checked,settings=$('restoreSettings').checked;
+      if(files&&records.length){const current=await getSaved();validSaved(current);const pending=records.filter(f=>!current.some(x=>x.name===f.name&&x.blob.size===f.blob.size));const all=[...current,...pending];validSaved(all);await addSaved(pending.map(x=>({...x,id:crypto.randomUUID()})));}
+      if(history){const previous=safeList(readLocal('fileforge_history_v1',[]));const added=safeList(m.history);const map=new Map();for(const r of [...previous,...added])map.set(`${r.time}|${r.output}|${r.kind||'image'}`,r);const merged=[...map.values()].sort((a,b)=>b.time-a.time).slice(0,40);localStorage.setItem('fileforge_history_v1',JSON.stringify(merged));}
+      if(stars){const previous=favs(readLocal('fileforge_favorites_v1',[]));localStorage.setItem('fileforge_favorites_v1',JSON.stringify([...new Set([...previous,...favs(m.favorites)])]));}
+      if(settings)localStorage.setItem('fileforge_prefs_v1',JSON.stringify(prefs(m.prefs)));
+      state.stage=null;$('importPreview').hidden=true;$('zipInput').value='';await refresh();status(str('restored'));
+    }catch(err){console.warn('Backup restore:',err);status((err.message==='Too many files'||err.message==='Total too large')?str('limit'):str('fail')+' ('+(err.message||'error')+')',true);}finally{busy(false);}}
+    document.addEventListener('DOMContentLoaded',()=>{const theme=prefs(readLocal('fileforge_prefs_v1',{}));if(theme.theme==='light'||theme.theme==='system'&&matchMedia('(prefers-color-scheme: light)').matches){document.documentElement.style.colorScheme='light';document.documentElement.style.setProperty('--bg','#f6f8fb');document.documentElement.style.setProperty('--panel','#fff');document.documentElement.style.setProperty('--text','#1d2936');document.documentElement.style.setProperty('--muted','#506477');document.documentElement.style.setProperty('--border','#d4dde6');document.documentElement.style.setProperty('--accent','#008c78');document.documentElement.style.setProperty('--accent-text','#fff');}
+      $('backupBtn').addEventListener('click',exportZip);$('chooseZip').addEventListener('click',()=>$('zipInput').click());$('zipInput').addEventListener('change',e=>stageZip(e.target.files?.[0]));$('restoreBtn').addEventListener('click',restoreZip);refresh().then(()=>status(str('ready'))).catch(()=>status('Не успях да отворя запазените файлове. Опитай през Android Chrome.',true));});
+  })();
+  </script>
+</head>
+<body>
+<main>
+<header><strong>F◆ FileForge</strong><a href="./">← Начало / Home</a></header>
+<div class="eyebrow">PORTABLE BACKUP · 1.9 ADD-ON</div>
+<h1>Резервно копие на FileForge</h1>
+<p class="muted">Един ZIP архив за историята, любимите инструменти, настройките и файловете, които си избрал да запазиш в <strong>Готови (Results)</strong>.</p>
+<div class="card"><h2>1. Създай резервно копие</h2><div class="stat"><span>Локално запазени файлове</span><strong id="savedInfo">…</strong></div><div class="stat"><span>История</span><strong id="historyInfo">…</strong></div><div class="stat"><span>Любими инструменти</span><strong id="favInfo">…</strong></div><div class="actions"><button class="primary" id="backupBtn" type="button">↓ Изтегли пълния ZIP Backup</button></div><p class="small">В архива няма временните резултати, които не си запазил, нито файлове от Android Downloads. Обработката е само на телефона.</p></div>
+<div class="card"><h2>2. Възстанови от ZIP</h2><p class="muted">Избери ZIP, създаден от този инструмент. Архивът ще бъде проверен преди записване на данни.</p><input id="zipInput" type="file" accept=".zip,application/zip" hidden><div class="actions"><button id="chooseZip" type="button">＋ Избери резервен ZIP</button></div><div id="importPreview" hidden><p id="importSummary"></p><div class="shelf" id="importList"></div><div class="checks"><label><input id="restoreFiles" type="checkbox" checked> Добави локално запазените файлове</label><label><input id="restoreHistory" type="checkbox" checked> Обедини историята</label><label><input id="restoreFavourites" type="checkbox" checked> Добави любимите инструменти</label><label><input id="restoreSettings" type="checkbox"> Възстанови език и тема</label></div><div class="actions"><button class="primary" id="restoreBtn" type="button">↑ Възстанови избраните</button></div></div></div>
+<div id="status" role="status" aria-live="polite">Зареждам…</div>
+<p class="notice small">Важно: архивът съдържа истински файлове и техните имена. Съхранявай го на сигурно място. Възстановяването не изтрива съществуващите файлове. Ако вече имаш 5 запазени файла или 40 MB, освободи място предварително. При големи архиви Android може да използва повече памет.</p>
+<p class="small">Това е допълнителен инструмент към FileForge 1.9, а не ново приложение. <a href="./">Върни се към FileForge</a>.</p>
+</main>
+</body></html>

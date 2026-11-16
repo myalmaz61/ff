@@ -1,4 +1,5 @@
-// FileForge 1.9.0 — portable offline shell; shared URLs and user files are never cached.
+// FileForge 1.9.0 — preserve PWA identity, settings and cache compatibility.
+// Portable Backup added as an offline-capable page; no private files or shared URLs are cached.
 const VERSION='1.9.0';
 const CACHE='fileforge-shell-'+VERSION;
 const FILES=[
@@ -7,6 +8,7 @@ const FILES=[
  './batch-studio.js','./audio-studio.js','./video-studio.js',
  './downloads-studio.js','./health.js','./file-desk.js',
  './multi-file.html','./multi-file.css','./multi-file.js',
+ './portable-backup.html',
  './manifest.webmanifest','./icon-192.png','./icon-512.png'
 ];
 const APP_FILES=new Set(FILES.filter(x=>x!=='./').map(x=>x.slice(2)));
@@ -52,6 +54,7 @@ self.addEventListener('fetch',event=>{
    try{return await fetch(req);}catch{
     const cache=await caches.open(CACHE);
     if(name==='multi-file.html')return await cache.match('./multi-file.html')||Response.error();
+    if(name==='portable-backup.html')return await cache.match('./portable-backup.html')||Response.error();
     return await cache.match('./index.html')||Response.error();
    }
   })());return;
