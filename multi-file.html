@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c1521">
+  <meta name="description" content="FileForge Multi-File Actions — снимки към PDF, обединяване на PDF и ZIP. Локална обработка.">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="stylesheet" href="./multi-file.css?v=1.9.0">
+  <title>FileForge 1.9 · Multi-File Actions</title>
+  <!-- Uses the JSZip library already present in FileForge; retain its existing licence. -->
+  <script src="./jszip.min.js" defer></script>
+  <script src="./multi-file.js?v=1.9.0" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <a class="back" href="./" aria-label="Back to FileForge">← <span data-t="back">Към FileForge</span></a>
+      <button id="language" class="language" type="button" aria-label="Switch language">EN</button>
+    </header>
+    <main>
+      <div class="hero">
+        <div class="brand"><span class="brand-symbol">F◆</span><span>FILEFORGE <span class="version">1.9 · MULTI-FILE</span></span></div>
+        <h1 data-t="headline">Няколко файла. Едно действие.</h1>
+        <p data-t="subtitle">Създай PDF от снимки, обедини документи или направи ZIP. Файловете се обработват на телефона.</p>
+        <div class="privacy">✓ <span data-t="privacy">Без качване на файловете в сървър</span></div>
+      </div>
+      <section class="workspace" aria-label="Multi-file tools">
+        <div class="tabs" role="tablist" aria-label="Mode">
+          <button class="tab active" type="button" role="tab" aria-selected="true" data-mode="images"><span class="tabicon">🖼️</span><span data-t="tabImages">Снимки → PDF</span></button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-mode="merge"><span class="tabicon">📄</span><span data-t="tabMerge">Обедини PDF</span></button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-mode="zip"><span class="tabicon">🗜️</span><span data-t="tabZip">Създай ZIP</span></button>
+        </div>
+        <div class="body">
+          <h2 id="modeTitle">Снимки → PDF</h2>
+          <p id="modeHelp" class="muted"></p>
+          <label class="pick" for="fileInput"><span class="pickicon">＋</span><span id="pickLabel" data-t="addImages">Добави снимки</span><small id="limits"></small></label>
+          <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple>
+          <div class="heading"><h3 data-t="selected">Избрани файлове</h3><span id="count" class="counter">0</span></div>
+          <div id="fileList" class="file-list" aria-live="polite"><p class="empty" data-t="empty">Още няма избрани файлове.</p></div>
+          <div id="imageOptions" class="options">
+            <label for="pageSize" data-t="pageSize">Размер на PDF страницата</label>
+            <select id="pageSize"><option value="portrait" data-t="portrait">A4 · Вертикално</option><option value="landscape" data-t="landscape">A4 · Хоризонтално</option></select>
+            <p class="hint" data-t="imageNote">По една снимка на страница. Прозрачните области се превръщат в бели. Снимките се намаляват при необходимост.</p>
+          </div>
+          <div id="zipOptions" class="options" hidden>
+            <label for="compression" data-t="compression">Компресия</label>
+            <select id="compression"><option value="6" data-t="standard">Стандартна</option><option value="1" data-t="fast">Бърза</option><option value="0" data-t="none">Без компресиране</option></select>
+          </div>
+          <div class="actions">
+            <button class="main-button" id="process" type="button" disabled data-t="process">Обработи файловете</button>
+            <button class="outline-button" id="clear" type="button" data-t="clear">Изчисти избора</button>
+          </div>
+          <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+          <section id="result" class="result" hidden>
+            <div class="result-header"><span aria-hidden="true">✓</span><div><strong data-t="ready">Файлът е готов</strong><p id="resultInfo"></p></div></div>
+            <div class="result-actions"><a id="download" href="#" class="main-button" download data-t="download">↓ Изтегли файла</a><button id="share" type="button" class="outline-button" data-t="share">Сподели</button></div>
+            <p class="hint" data-t="saveReminder">Изтегли файла преди да затвориш този екран. Резултатът е временен.</p>
+          </section>
+        </div>
+      </section>
+      <section class="notes"><h3 data-t="important">Важно</h3><p data-t="note">Оригиналните файлове не се променят. PDF библиотеката изисква интернет при първото използване. Защитени с парола PDF не се поддържат. Тази добавка не променя основната PWA или нейните данни.</p></section>
+    </main>
+    <footer>FileForge · <span data-t="footer">Допълнителен инструмент за лично ползване</span></footer>
+  </div>
+</body>
+</html>
