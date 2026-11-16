@@ -2,17 +2,17 @@
 /* FileForge 1.2 — local PWA health, updates and storage safety.
    Never reads personal file content, upload URLs or history entries. */
 (() => {
-  const VERSION='1.9.0';
+  const VERSION='1.10.0';
   const CACHE='fileforge-shell-'+VERSION;
   const SHELL=['index.html','styles.css','app.js','pdf-studio.js','archive-studio.js','jszip.min.js',
     'library.js','batch-studio.js','audio-studio.js','video-studio.js','downloads-studio.js',
-    'health.js','file-desk.js','results.js','multi-file.html','multi-file.css','multi-file.js','manifest.webmanifest','icon-192.png','icon-512.png'];
+    'health.js','file-desk.js','results.js','multi-file.html','multi-file.css','multi-file.js','portable-backup.html','manifest.webmanifest','icon-192.png','icon-512.png'];
   const $=id=>document.getElementById(id);
   const dictionary={
     bg:{healthTitle:'🔧 Състояние и поддръжка',healthDesc:'Offline проверка, актуализации и локални данни — само от телефона.',
       connectLabel:'Връзка',offlineLabel:'Offline файлове',storageLabel:'Памет на сайта',protectLabel:'Защита на данните',
       check:'Провери състоянието',update:'Провери за обновяване',persist:'Защити локалните данни',backup:'Изтегли JSON Backup',copy:'Копирай диагностика',reload:'Презареди новата версия',
-      healthNote:'Backup пази история и любими, но не самите файлове. Защитата на данните зависи от Chrome и не замества Backup. PDF библиотеката може да изисква интернет при първо използване.',
+      healthNote:'JSON Backup пази история и любими. За копия на локално запазените файлове използвай Portable Backup по-горе. Защитата на паметта не замества резервните копия.',
       online:'Онлайн',offline:'Без интернет',yes:'Разрешена',no:'Стандартна',unsupported:'Не се поддържа',unknown:'Неизвестно',checking:'Проверка…',
       cacheMissing:'Няма пълен offline кеш',cacheReady:'Готови',storageApprox:'приблизително',
       checkDone:'Проверката приключи.',updateChecking:'Проверявам за по-нова версия…',updateChecked:'Проверено. Ако има нова версия, бутонът за презареждане ще се появи.',
@@ -26,7 +26,7 @@
     en:{healthTitle:'🔧 Health & maintenance',healthDesc:'Check offline availability, updates and storage from your phone.',
       connectLabel:'Connection',offlineLabel:'Offline files',storageLabel:'Site storage',protectLabel:'Storage protection',
       check:'Check status',update:'Check for updates',persist:'Protect local data',backup:'Download JSON Backup',copy:'Copy diagnostics',reload:'Reload new version',
-      healthNote:'Backup includes history and favourites, not the actual files. Storage protection depends on Chrome and does not replace backups. The PDF library may need internet on first use.',
+      healthNote:'JSON Backup includes history and favourites. To include locally saved files use Portable Backup above. Storage protection does not replace backups.',
       online:'Online',offline:'Offline',yes:'Granted',no:'Standard',unsupported:'Unsupported',unknown:'Unknown',checking:'Checking…',
       cacheMissing:'Offline cache incomplete',cacheReady:'Ready',storageApprox:'approximately',
       checkDone:'Status check complete.',updateChecking:'Checking for a newer version…',updateChecked:'Checked. If an update is available, a reload button will appear.',

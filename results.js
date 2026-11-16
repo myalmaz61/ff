@@ -1,4 +1,4 @@
-/* FileForge 1.9 — Results shelf with optional device-only saved copies.
+/* FileForge 1.10 — Results shelf with optional device-only saved copies.
    IMPORTANT: Outputs are session-only unless a user explicitly chooses Save locally.
    Saved copies live in a dedicated IndexedDB database, not in JSON History backups.
    No upload, analytics, account or network request is made by this module. */
@@ -319,22 +319,22 @@
     render();
   }
   function markVersion(){
-    // The host PWA (1.4) deliberately stays intact: this upgrade replaces only the Results module.
-    document.title='FileForge 1.9';
-    const brand=document.querySelector('.brand-name small');if(brand)brand.textContent='1.9';
+    // Keep the displayed version consistent with the main PWA shell.
+    document.title='FileForge 1.10';
+    const brand=document.querySelector('.brand-name small');if(brand)brand.textContent='1.10';
     const versionRow=document.querySelector('[data-i18n="version"]')?.closest('.setting-row');
     if(versionRow){const label=versionRow.querySelector('small');const value=versionRow.querySelector(':scope > span');
-      if(label)label.textContent='FileForge 1.9.0 · PWA';if(value)value.textContent='1.9.0';}
+      if(label)label.textContent='FileForge 1.10.0 · PWA';if(value)value.textContent='1.10.0';}
     const footer=document.querySelector('.footer');
-    if(footer?.firstChild?.nodeType===Node.TEXT_NODE)footer.firstChild.textContent='FileForge 1.9 ';
+    if(footer?.firstChild?.nodeType===Node.TEXT_NODE)footer.firstChild.textContent='FileForge 1.10 ';
     try{
       if(typeof I18N!=='undefined'){
-        I18N.bg.heroPill=String(I18N.bg.heroPill).replace(/FILEFORGE 1\.[0-8]/i,'FILEFORGE 1.9');
-        I18N.en.heroPill=String(I18N.en.heroPill).replace(/FILEFORGE 1\.[0-8]/i,'FILEFORGE 1.9');
+        I18N.bg.heroPill=String(I18N.bg.heroPill).replace(/FILEFORGE 1\.\d+(?:\.\d+)?/i,'FILEFORGE 1.10');
+        I18N.en.heroPill=String(I18N.en.heroPill).replace(/FILEFORGE 1\.\d+(?:\.\d+)?/i,'FILEFORGE 1.10');
       }
     }catch{/* Optional version badge; no functionality depends on it. */}
     const pill=document.querySelector('[data-i18n="heroPill"]');
-    if(pill)pill.textContent=pill.textContent.replace(/FILEFORGE 1\.[0-8]/i,'FILEFORGE 1.9');
+    if(pill)pill.textContent=pill.textContent.replace(/FILEFORGE 1\.\d+(?:\.\d+)?/i,'FILEFORGE 1.10');
   }
   async function restoreSaved(){
     try{

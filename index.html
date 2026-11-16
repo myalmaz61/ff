@@ -11,26 +11,26 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="icon" type="image/png" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=1.9.0">
-  <link rel="stylesheet" href="./styles.css?v=1.9.0">
-  <title>FileForge 1.9</title>
-  <script src="./app.js?v=1.9.0" defer></script>
-  <script src="./results.js?v=1.9.0" defer></script>
-  <script src="./pdf-studio.js?v=1.9.0" defer></script>
-  <script src="./jszip.min.js?v=1.9.0" defer></script>
-  <script src="./archive-studio.js?v=1.9.0" defer></script>
-  <script src="./library.js?v=1.9.0" defer></script>
-  <script src="./batch-studio.js?v=1.9.0" defer></script>
-  <script src="./audio-studio.js?v=1.9.0" defer></script>
-  <script src="./video-studio.js?v=1.9.0" defer></script>
-  <script src="./downloads-studio.js?v=1.9.0" defer></script>
-  <script src="./health.js?v=1.9.0" defer></script>
-  <script src="./file-desk.js?v=1.9.0" defer></script>
+  <link rel="manifest" href="./manifest.webmanifest?v=1.10.0">
+  <link rel="stylesheet" href="./styles.css?v=1.10.0">
+  <title>FileForge 1.10</title>
+  <script src="./app.js?v=1.10.0" defer></script>
+  <script src="./results.js?v=1.10.0" defer></script>
+  <script src="./pdf-studio.js?v=1.10.0" defer></script>
+  <script src="./jszip.min.js?v=1.10.0" defer></script>
+  <script src="./archive-studio.js?v=1.10.0" defer></script>
+  <script src="./library.js?v=1.10.0" defer></script>
+  <script src="./batch-studio.js?v=1.10.0" defer></script>
+  <script src="./audio-studio.js?v=1.10.0" defer></script>
+  <script src="./video-studio.js?v=1.10.0" defer></script>
+  <script src="./downloads-studio.js?v=1.10.0" defer></script>
+  <script src="./health.js?v=1.10.0" defer></script>
+  <script src="./file-desk.js?v=1.10.0" defer></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Navigation">
-      <div class="brand"><span class="brand-mark">F<span>◆</span></span><span class="brand-name">FileForge <small>1.9</small></span></div>
+      <div class="brand"><span class="brand-mark">F<span>◆</span></span><span class="brand-name">FileForge <small>1.10</small></span></div>
       <div class="side-label" data-i18n="workspace">РАБОТНО ПРОСТРАНСТВО</div>
       <nav class="side-nav" aria-label="Main">
         <button class="nav-button active" data-nav="home"><span class="nav-emoji">⌂</span><span data-i18n="navHome">Начало</span></button>
@@ -55,7 +55,7 @@
       <section class="page active" id="page-home">
         <div class="hero">
           <div class="hero-copy">
-            <span class="pill"><span class="green-dot"></span><span data-i18n="heroPill">FILEFORGE 1.9 · COMPLETE TOOLKIT</span></span>
+            <span class="pill"><span class="green-dot"></span><span data-i18n="heroPill">FILEFORGE 1.10 · COMPLETE TOOLKIT</span></span>
             <h2 data-i18n="heroTitle">Твоите файлове.<br>Твоят контрол.</h2>
             <p data-i18n="heroDesc">Конвертирай, компресирай и редактирай снимки директно на телефона — без качване на сървър.</p>
             <button class="primary-button" id="heroChoose" type="button"><span>＋</span> <span data-i18n="chooseImage">Избери снимка</span></button>
@@ -464,12 +464,20 @@
         <div class="settings-list"><label class="setting-row"><div><strong data-i18n="appearance">Външен вид</strong><small data-i18n="appearanceDesc">Избирай между светла, тъмна и системна тема</small></div><select id="themeSetting"><option value="system" data-i18n="system">Системна</option><option value="dark" data-i18n="dark">Тъмна</option><option value="light" data-i18n="light">Светла</option></select></label>
         <label class="setting-row"><div><strong data-i18n="language">Език</strong><small data-i18n="languageDesc">Език на интерфейса</small></div><select id="languageSetting"><option value="bg">Български</option><option value="en">English</option></select></label>
         <div class="setting-row"><div><strong data-i18n="privacy">Поверителност</strong><small data-i18n="privacySettings">Снимките се обработват локално. Историята е само на това устройство.</small></div><span class="status-tag ready">LOCAL</span></div>
-        <div class="setting-row"><div><strong data-i18n="version">Версия</strong><small>FileForge 1.9.0 · PWA</small></div><span>1.9.0</span></div></div>
+        <div class="setting-row"><div><strong data-i18n="version">Версия</strong><small>FileForge 1.10.0 · PWA</small></div><span>1.10.0</span></div></div>
         <section class="install-settings">
           <div class="install-settings-head"><div><h3 data-i18n="pwaSettingsTitle">PWA инсталация</h3><p data-i18n="pwaSettingsDesc">Проверка на условията и инструкции за Android Chrome.</p></div><button id="installSettingsButton" class="primary-button" type="button" data-i18n="installButton">Инсталирай</button></div>
           <p id="installStatus" class="install-status" aria-live="polite"></p>
           <div class="diagnostics"><div><span data-i18n="secureStatus">Сигурна връзка (HTTPS)</span><strong id="pwaSecure">…</strong></div><div><span>Manifest</span><strong id="pwaManifest">…</strong></div><div><span>Service Worker</span><strong id="pwaWorker">…</strong></div></div>
-          <p class="help-note" data-i18n="installInstructions">Отвори точния https://...github.io/fileforge/ адрес в Chrome (не в GitHub или ChatGPT). После ⋮ → Add to Home screen → Install app. Ако пише Add shortcut, това не е същото като WebAPK.</p>
+          <p class="help-note" data-i18n="installInstructions">Отвори точния https://myalmaz61.github.io/ff/ адрес в Chrome (не в GitHub или ChatGPT). После ⋮ → Add to Home screen → Install app. Ако пише Add shortcut, това не е същото като WebAPK.</p>
+        </section>
+        <section class="ff-health-panel" aria-labelledby="ffPortableTitle">
+          <div class="ff-health-heading">
+            <h3 id="ffPortableTitle" data-i18n="portableTitle">🧳 Пълно резервно копие</h3>
+            <p data-i18n="portableDesc">Един ZIP за историята, любимите, езика, темата и файловете, които си запазил локално в „Готови“.</p>
+          </div>
+          <a class="primary-button" href="./portable-backup.html" data-i18n="portableOpen">Отвори Portable Backup →</a>
+          <p class="ff-health-footnote" data-i18n="portableNote">Изтеглените в Downloads и временните резултати не са включени. ZIP архивът не е криптиран.</p>
         </section>
         <section class="ff-health-panel" aria-labelledby="ffHealthTitle">
           <div class="ff-health-heading">
@@ -494,7 +502,7 @@
           <p class="ff-health-footnote" data-health-i18n="healthNote">JSON архивът пази история и любими, но не самите файлове. Защитата на паметта се разрешава от браузъра и не замества Backup. PDF Studio може да изисква интернет при първо зареждане.</p>
         </section>
       </section>
-      <footer class="footer">FileForge 1.9 <span>·</span> <span data-i18n="footer">Made for your files, not your data.</span></footer>
+      <footer class="footer">FileForge 1.10 <span>·</span> <span data-i18n="footer">Made for your files, not your data.</span></footer>
     </main>
 
     <nav class="bottom-nav" aria-label="Mobile navigation">

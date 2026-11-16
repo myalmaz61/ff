@@ -1,6 +1,5 @@
-// FileForge 1.9.0 — preserve PWA identity, settings and cache compatibility.
-// Portable Backup added as an offline-capable page; no private files or shared URLs are cached.
-const VERSION='1.9.0';
+// FileForge 1.10.0 — portable offline shell; shared URLs and user files are never cached.
+const VERSION='1.10.0';
 const CACHE='fileforge-shell-'+VERSION;
 const FILES=[
  './','./index.html','./styles.css','./app.js','./results.js',
